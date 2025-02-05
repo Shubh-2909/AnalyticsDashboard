@@ -1,19 +1,20 @@
-
-import React, { useState, useEffect } from 'react';
-import { getAuth, updateProfile, updateEmail } from 'firebase/auth';
+import React, { useState, useEffect } from "react";
+import { getAuth, updateProfile, updateEmail } from "firebase/auth";
+import { useRoutes } from "react-router-dom";
 
 const Profile = () => {
-  const [displayName, setDisplayName] = useState('');
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [displayName, setDisplayName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const router = useRoutes();
   const auth = getAuth();
   const user = auth.currentUser;
 
   useEffect(() => {
     if (user) {
-      setDisplayName(user.displayName || '');
-      setEmail(user.email || '');
+      setDisplayName(user.displayName || "");
+      setEmail(user.email || "");
     }
   }, [user]);
 
@@ -22,13 +23,14 @@ const Profile = () => {
     try {
       if (user) {
         await updateProfile(user, {
-          displayName: displayName
+          displayName: displayName,
         });
         await updateEmail(user, email);
-        setMessage('Profile updated successfully.');
+        setMessage("Profile updated successfully.");
+        router.navigate("/dashboard");
       }
     } catch (error) {
-      setError('Failed to update profile. Please try again.');
+      setError("Failed to update profile. Please try again.");
     }
   };
 
