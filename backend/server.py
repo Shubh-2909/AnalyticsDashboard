@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field
 from typing import List
@@ -8,11 +9,11 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 
+# Load environment variables
 load_dotenv()
 
 # MongoDB connection URL
 MONGODB_URL = os.getenv("MONGODB_URL")
-# print(MONGODB_URL)
 DB_NAME = "analytics_dashboard"
 COLLECTION_NAME = "clusters"
 
@@ -50,6 +51,15 @@ async def lifespan(app: FastAPI):
 
 # Initialize FastAPI app with lifespan
 app = FastAPI(title="Cluster Management API", lifespan=lifespan)
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins (change to specific domains in production)
+    allow_credentials=True,
+    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
+)
 
 # API Endpoints
 @app.get("/api/data", response_model=List[ClusterResponse])
@@ -110,5 +120,6 @@ async def create_cluster(cluster: ClusterCreate):
     cluster_dict["id"] = str(result.inserted_id)
     return ClusterResponse(**cluster_dict)
 
+# Run the server
 if __name__ == "__main__":
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
