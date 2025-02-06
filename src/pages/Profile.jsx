@@ -1,34 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { getAuth, updateProfile, updateEmail } from "firebase/auth";
-import { useRoutes } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const router = useRoutes();
+  const navigate = useNavigate(); // Correct navigation hook
   const auth = getAuth();
-  const user = auth.currentUser;
 
   useEffect(() => {
+    const user = auth.currentUser; // Fetch user inside useEffect
     if (user) {
       setDisplayName(user.displayName || "");
       setEmail(user.email || "");
     }
-  }, [user]);
+  }, [auth]);
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
+    const user = auth.currentUser; // Fetch user inside function to avoid stale values
+
+    if (!user) {
+      setError("User not authenticated.");
+      return;
+    }
+
     try {
-      if (user) {
-        await updateProfile(user, {
-          displayName: displayName,
-        });
-        await updateEmail(user, email);
-        setMessage("Profile updated successfully.");
-        router.navigate("/dashboard");
-      }
+      await updateProfile(user, { displayName });
+      // Updating email requires reauthentication
+      navigate("/dashboard");
+      await updateEmail(user, email);
+      setMessage("Profile updated successfully.");
     } catch (error) {
       setError("Failed to update profile. Please try again.");
     }
